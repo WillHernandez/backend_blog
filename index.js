@@ -21,9 +21,6 @@ const connectToPostgres = async () => {
 app.use(cors())
 app.use(express.json())
 
-app.use('/', (req, res) => {
-	res.send("This was a success.")
-})
 app.use('/api/user', userRoutes)
 app.use('/api/post', postRoutes)
 app.use('/api/friend', friendRoutes)
