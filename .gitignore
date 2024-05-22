@@ -1,0 +1,6 @@
+node_modules
+.env
+.vscode
+psqlNotes.md
+dockerNotes.md
+truemates-gcp.json
