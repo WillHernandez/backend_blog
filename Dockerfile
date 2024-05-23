@@ -4,4 +4,4 @@ COPY package*.json ./
 RUN npm install
 COPY . . 
 EXPOSE 8080 
-CMD npx nodemon --inspect=0.0.0.0:9229--signal SIGINT --nolazy index.js
+# CMD npx nodemon index.js : replaced by command in docker-compose
