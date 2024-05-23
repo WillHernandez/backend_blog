@@ -12,18 +12,16 @@ export const create = async (req, res) => {
 	const file = bucket.file('images/shiba.jpg')
 	const fileName = file.name.split("/").pop()
 	try {
-		// get values
-		const { dataValues } = await PostModel.findOne({where: {userId: id}})
-
-		if(dataValues.images.length < 5) {
-			// upload file to gcp
+		const postFind = await PostModel.findOne({where: {userId: id}})
+		// if user has no posts or post contains < 5 images
+		if(!postFind || postFind.dataValues.images.length < 5) {
+			// upload file to google cloud bucket
 			await bucket.upload( file.name, {destination: `${email}/${fileName}`})
-			// retrieve all images from gcp
+			//retrieve all image urls from google cloud bucket
 			const images = await getImageUrls(email)
-			// write our full post with image urls to postgres
-			const post = await PostModel.create({ description, images, userId: id })
-			// const updatedTime = await sequelizeDB.query(`SELECT NOW() - (SELECT "createdAt" FROM posts WHERE id = ${post.dataValues.id})`)
-			res.status(201).json(post.dataValues)
+			// write our full post with description & image urls to postgres
+			const postCreate = await PostModel.create({ description, images, userId: id })
+			res.status(201).json(postCreate.dataValues)
 		} else {
 			res.status(400).json({error: "Max of 5 images on a post"})
 		}
@@ -62,5 +60,16 @@ export const updatePost = async (req, res) => {
 
 export const getPost = async (id, userId) => {
 	const post = await PostModel.findOne({ where: { id, userId }})
-	return post
+	return post.dataValues
+}
+
+export const getUsersPosts = async (req, res) => {
+	const { id } = req.user
+	try {
+		const posts = await PostModel.findAll({ where: { userId: id }})
+		res.status(200).json(posts)
+	return posts
+	} catch(e) {
+		res.status(400).json(e)
+	}
 }

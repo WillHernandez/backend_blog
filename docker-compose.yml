@@ -13,6 +13,8 @@ services:
     build: .
     ports:
       - "8081:8080"
+      - "9229:9229"
+    command: npx nodemon --inspect=0.0.0.0:9229 --signal SIGINT --nolazy index.js
     environment:
       - GCP_PROJECT_ID=$GCP_PROJECT_ID
       - GCP_KEYFILENAME=$GCP_KEYFILENAME
@@ -20,3 +22,4 @@ services:
       - POSTGRES_DB=$POSTGRES_DB
       - POSTGRES_USER=$POSTGRES_USER
       - POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+      - JWT_TOKEN=$JWT_TOKEN
