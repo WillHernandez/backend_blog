@@ -6,6 +6,7 @@ dotenv.config()
 
 export const register = async (req, res) => {
 	let { name, email, password } = req.body
+	email = email.toLowerCase()
 	try {
 		password = await bcrypt.hash(password, 10)
 		await UserModel.create({ name, email, password })

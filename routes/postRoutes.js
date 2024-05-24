@@ -17,9 +17,13 @@ router.get('/getpost/:id', authJwt, async (req, res) => {
 })
 
 router.post('/new', authJwt, (req, res) => {
-	postCon.create(req, res)
+	postCon.createPost(req, res)
 })
 
-router.patch('/update/:id', authJwt, (req, res) => {
-	postCon.updatePost(req, res)
+router.patch('/updatedesc/:id', authJwt, (req, res) => {
+	postCon.updatePostDesc(req, res)
+})
+
+router.patch('/updateimg/:id', authJwt, (req, res) => {
+	postCon.updatePostImages(req, res)
 })

@@ -1,7 +1,3 @@
-SELECT * FROM users;
-SELECT * FROM posts;
-SELECT * FROM friends;
-
 CREATE TABLE users (
 	id SERIAL PRIMARY KEY,
 	name VARCHAR(50) NOT NULL,

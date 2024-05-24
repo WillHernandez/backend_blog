@@ -5,7 +5,7 @@ dotenv.config()
 
 const bucket = gcpBucket.bucket(process.env.GCP_BUCKET_NAME)
 
-export const create = async (req, res) => {
+export const createPost = async (req, res) => {
 	let { description } = req.body
 	const { email, id } = req.user
 	// const file = bucket.file('images/bean.jpg')
@@ -13,32 +13,31 @@ export const create = async (req, res) => {
 	const file = bucket.file('images/rick.jpg')
 	const fileName = file.name.split("/").pop()
 	try {
-		const postFind = await PostModel.findOne({where: {userId: id}})
-		// if user has no posts or post contains < 5 images
-		if(!postFind || postFind.dataValues.images.length < 5) {
-			// upload file to google cloud bucket
-			await bucket.upload( file.name, {destination: `${email}/${fileName}`})
-			//retrieve all image urls from google cloud bucket
-			const images = await getImageUrls(email)
-			// write our full post with description & image urls to postgres
-			const postCreate = await PostModel.create({ description, images, userId: id })
-			res.status(201).json(postCreate.dataValues)
-		} else {
-			res.status(400).json({error: "Max of 5 images on a post"})
-		}
+		// put into postgres with blank images arr
+		const postCreate = await PostModel.create({ description, userId: id })
+		// upload image to google cloud
+		await bucket.upload( file.name, {destination: `${email}/${postCreate.id}/${fileName}`})
+		// get image urls from google cloud
+		const images = await getImageUrls(email, postCreate.id)
+		// update postgres post with image urls
+		await PostModel.update( {images},
+			{ where: {id: postCreate.id, userId: id }})
+		// get updated post from postgres
+		const post = await PostModel.findByPk(postCreate.id) 
+		// res = updated post from postgres
+		res.status(201).json(post.dataValues)
 	} catch(e) {
-		console.log(e);
 		res.status(400).json(e)
 	}
 }
 
-const getImageUrls = async email => {
-	const [ objects ] = await bucket.getFiles({prefix:email})
+const getImageUrls = async (email, id) => {
+	const [ objects ] = await bucket.getFiles({prefix:`${email}/${id}`})
 	const imageUrls = objects.map(img => img.metadata.mediaLink)
 	return imageUrls
 }
 
-export const updatePost = async (req, res) => {
+export const updatePostDesc = async (req, res) => {
 	const { description } = req.body
 	const { id } = req.params
 	try {
@@ -49,16 +48,36 @@ export const updatePost = async (req, res) => {
 					userId: req.user.id
 				}
 			})
-		const post = await getPost(id, req.user.id)
+		const post = await PostModel.findByPk(id)
 		res.status(200).json(post.dataValues)
 	} catch(e) {
 		res.status(400).json(e)
 	}
 }
 
-export const getPost = async (id, userId) => {
-	const post = await PostModel.findOne({ where: { id, userId }})
-	return post.dataValues
+export const updatePostImages = async (req, res) => {
+	const { email } = req.user
+	const { id } = req.params
+	const file = bucket.file('images/shiba.jpg')
+	const fileName = file.name.split("/").pop()
+	try {
+		// upload file to gcp
+		await bucket.upload( file.name, {destination: `${email}/${id}/${fileName}`})
+		// get updated imageurls from gcp
+		const images = await getImageUrls(email, id)
+		// update postgres post with new images
+		await PostModel.update( {images},
+			{ where: {
+					id,
+					userId: req.user.id
+				}
+			})
+		// updated postgres post
+		const post = await PostModel.findByPk(id)
+		res.status(200).json(post.dataValues)
+	} catch(e) {
+		res.status(400).json(e)
+	}
 }
 
 export const getUsersPosts = async (req, res) => {
