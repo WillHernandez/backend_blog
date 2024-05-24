@@ -25,7 +25,7 @@ export const login = async (req, res) => {
 			const accessToken = jwt.sign({ user: dbUser.dataValues }, process.env.JWT_TOKEN)
 			res.status(202).json({ accessToken })
 		} else {
-			res.sendStatus(401)
+			res.status(401).json({error: "Credentials do not match"})
 		}
 	} catch (e) {
 		res.status(401).json(e)

@@ -9,7 +9,8 @@ export const create = async (req, res) => {
 	let { description } = req.body
 	const { email, id } = req.user
 	// const file = bucket.file('images/bean.jpg')
-	const file = bucket.file('images/shiba.jpg')
+	// const file = bucket.file('images/shiba.jpg')
+	const file = bucket.file('images/rick.jpg')
 	const fileName = file.name.split("/").pop()
 	try {
 		const postFind = await PostModel.findOne({where: {userId: id}})
@@ -32,11 +33,8 @@ export const create = async (req, res) => {
 }
 
 const getImageUrls = async email => {
-	let imageUrls = []
-	const [objects] = await bucket.getFiles({prefix:email})
-	for(let i = 1; i < objects.length; ++i) {
-		imageUrls.push(objects[i].metadata.mediaLink)
-	}
+	const [ objects ] = await bucket.getFiles({prefix:email})
+	const imageUrls = objects.map(img => img.metadata.mediaLink)
 	return imageUrls
 }
 
